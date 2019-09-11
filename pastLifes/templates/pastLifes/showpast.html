@@ -1,0 +1,9 @@
+{% extends 'pastLifes/base.html' %}
+{% block body %}
+<h1>{{past.name}}({{past.age}})님의 전생은 {{past.myjob}}입니다. </h1>
+
+<form action="{% url 'pastLifes:index' %}">
+<img src="{{ image_url }}" alt="{{past.myjob}}">
+  <input type="submit" value="돌아가기">
+</form>
+{% endblock %}

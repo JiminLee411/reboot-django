@@ -1,0 +1,12 @@
+{% extends 'pastLifes/base.html' %}
+{% block body %}
+<h1>당신의 전생을 알려드립니다</h1>
+<form action="{% url 'pastLifes:showpast' %}" method="POST">
+  {% csrf_token %}
+  <label for="name">이름</label>
+  <input type="text" id='name' name='name'>
+  <label for="age">나이</label>
+  <input type="text" id='age' name='age'>
+  <input type="submit">
+</form>
+{% endblock %}
