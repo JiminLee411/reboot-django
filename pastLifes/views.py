@@ -15,7 +15,7 @@ def showpast(request):
         past = PastLife()
         past.name = name
         past.age = age
-        fake = Faker('ko_KR')
+        fake = Faker()
         past.myjob = fake.job()
         past.save()
     else:
@@ -23,7 +23,7 @@ def showpast(request):
     # 직업 결과에 따라, giphy 요청
     job = past.myjob
     api_key = config('GIPHY_API_KEY')
-    url = f'http://api.giphy.com/v1/gifs/search?api_key={api_key}&q={job}&lang=ko'
+    url = f'http://api.giphy.com/v1/gifs/search?api_key={api_key}&q={job}'
     # 2. 요청 보내기
     response = requests.get(url).json()
     # 3. 응답 결과에서 이미지 url 뽑기
