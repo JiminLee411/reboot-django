@@ -2,6 +2,7 @@
 {% block body %}
   <h2>{{ article.title }}</h2><hr>
   {{ article.content }}<br> <hr>
+  <img src="{{ article.image.url }}" alt="{{ article.image.name }}">
   <a href="/articles/{{ article.pk }}/delete/">글 삭제하기</a>
   <a href="/articles/{{ article.pk }}/edit/">글 수정하기</a><br>
   <form action="/articles/">

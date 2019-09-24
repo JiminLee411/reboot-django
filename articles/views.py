@@ -14,10 +14,10 @@ def new(request):
 
 def create(request):
     article = Article()
-    article.title = request.GET.get('title')
-    article.content = request.GET.get('content')
+    article.title = request.POST.get('title')
+    article.content = request.POST.get('content')
+    article.image = request.FILES.get('image')
     article.save()
-
     return redirect('/articles/')
 
 def detail(request, article_pk):
@@ -42,8 +42,8 @@ def edit(request, article_pk):
 
 def update(request,article_pk):
     article = Article.objects.get(pk=article_pk)
-    article.title = request.GET.get('title')
-    article.content = request.GET.get('content')
+    article.title = request.POST.get('title')
+    article.content = request.POST.get('content')
     article.save()
 
     return redirect(f'/articles/{article_pk}/')

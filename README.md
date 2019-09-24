@@ -24,10 +24,9 @@
   ```bash
   $ git init
   $ touch .gitignore
-  $ git freeze
-  $ git freeze > requirements.txt
+  $ pip freeze > requirements.txt
   ```
-
+  
 * django 프로젝트 생성
 
   ```bash
