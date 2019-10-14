@@ -58,6 +58,8 @@
 ## 문제
 
 > 아래의 문제들을 sql문과 대응되는 orm을 작성 하세요.
+>
+> https://docs.djangoproject.com/en/2.2/topics/db/queries/ 참조
 
 ### 기본 CRUD 로직
 
@@ -70,7 +72,7 @@
 
       ```sql
    -- sql
-   SELECT * FROM users_user
+   SELECT * FROM users_user;
       ```
 
 2. user 레코드 생성
@@ -78,11 +80,20 @@
    ```python
    # orm
    User.objects.create(first_name='태우', last_name='김', age='29', country='청주', phone='010-1111-1111', balance=10000000000000)
+   
+   # 2.
+   user = User()
+   user.first_name = '길동'
+   ..
+   user.save()
    ```
 
    ```sql
    -- sql
    INSERT INTO users_user (first_name, last_name, age, country, phone, balance) VALUES ('지민', '이', 25, '한국', '010-3083-4748', '100000000');
+   
+   -- 전체 입력이면
+   INSERT INTO users_user VALUES ('지민', '이', 25, '한국', '010-3083-4748', '100000000');
    ```
 
    * 하나의 레코드를 빼고 작성 후 `NOT NULL` constraint 오류를 orm과 sql에서 모두 확인 해보세요.
@@ -91,6 +102,26 @@
 
    ```python
    # orm
+   User.objects.get(pk=103)
+   
+   # 내용 보고싶으면
+   # 1.
+   In [6]: user = User.objects.get(pk=103)
+   
+   In [7]: user.first_name
+   Out[7]: '길동'
+       
+   # 2.
+   In [8]: user.__dict__
+   Out[8]: 
+   {'_state': <django.db.models.base.ModelState at 0x243d2fcb108>,
+    'id': 103,
+    'first_name': '길동',
+    'last_name': '홍',
+    'age': 29,
+    'country': '청주',
+    'phone': '010-1111-1111',
+    'balance': 10000}
    ```
 
       ```sql
@@ -103,8 +134,9 @@
 
    ```python
    # orm
-   In [3]: User.objects.get(pk=102)
-   Out[3]: <User: User object (102)>
+   user = User.objects.get(pk=103)
+   user.first_name = '동구'
+   user.save()
    ```
 
       ```sql
@@ -117,13 +149,14 @@
    ```python
    # orm
    User.objects.get(pk=102).delete()
-```
+   ```
    
-      ```sql
+   ```sql
    -- sql
    sqlite> DELETE FROM users_user WHERE id=101;
-      ```
-
+   ```
+   
+   
 ### 조건에 따른 쿼리문
 
 1. 전체 인원 수 
@@ -146,6 +179,10 @@
    # orm
    In [8]: User.objects.filter(age=30).values('first_name')
    Out[8]: <QuerySet [{'first_name': '영환'}, {'first_name': '보람'}, {'first_name': '은영'}]>
+       
+   # query 명령문
+   In [14]: print(User.objects.filter(age=30).values('first_name').query)
+   SELECT "users_user"."first_name" FROM "users_user" WHERE "users_user"."age" = 30
    ```
 
       ```sql
@@ -158,10 +195,22 @@
 
 3. 나이가 30살 이상인 사람의 인원 수
 
+   > __gte : `<=`
+   >
+   > __gt : `<`
+   >
+   > __lte : `>=`
+   >
+   > __lt  : `>`
+
    ```python
    # orm
    In [11]: User.objects.filter(age__gte=30).count()
    Out[11]: 43
+       
+   # query는 queryset의 인스턴스 변수로 존재함.
+   # -> .count()는 결과가 int로 가져오기 때문에 확인불가
+   # 확인하고 싶으면 .count() 빼고 queryset 결과가 나오는 명령어로 확인
    ```
 
       ```sql
@@ -174,17 +223,41 @@
 
    ```python
    # orm
-   In [12]: User.objects.filter(age__gte=30, last_name='김').count()
-   Out[12]: 12
+   In [12]: User.objects.filter(age=30, last_name='김').count()
+   Out[12]: 1
+   # 2.
+   User.objects.filter(age=30).filter(last_name='김').count()
    ```
 
       ```sql
    -- sql
-   sqlite> SELECT COUNT(*) FROM users_user WHERE age>=30 and last_name='김';
-   12
+   sqlite> SELECT COUNT(*) FROM users_user WHERE age=30 and last_name='김';
+   1
       ```
 
 5. 지역번호가 02인 사람의 인원 수
+
+   > LIKE
+   >
+   > exact : 정확히 일치
+   >
+   > contains : 포함
+   >
+   > startswith : 시작하는거 일치
+   >
+   > endswith : 끝나는거 일치
+   >
+   > 
+   >
+   > i -> case insensitive (대소문자 무시)
+   >
+   > iexact : 정확히 일치
+   >
+   > icontains : 포함
+   >
+   > istartswith : 시작하는거 일치
+   >
+   > iendswith : 끝나는거 일치
 
    ```python
    # orm
@@ -203,9 +276,9 @@
    ```python
    # orm
    In [16]: User.objects.filter(country='강원도', last_name='황').values('first_name')
-Out[16]: <QuerySet [{'first_name': '은정'}]>
+   Out[16]: <QuerySet [{'first_name': '은정'}]>
    ```
-   
+
       ```sql
    -- sql
    sqlite> SELECT first_name FROM users_user WHERE country='강원도' and last_name='황';
@@ -282,10 +355,18 @@ Out[28]: <User: User object (67)>
 
 1. 전체 평균 나이
 
+   >  aggregation 설명 : https://docs.djangoproject.com/en/2.2/topics/db/aggregation/
+
    ```python
    # orm
    In [29]: User.objects.all().aggregate(Avg('age'))
    Out[29]: {'age__avg': 28.23}
+       
+   # 2.
+   User.objects.aggregate(Avg('age'))
+   
+   ######
+   from django.db.models import Avg
    ```
 
       ```sql
@@ -312,8 +393,13 @@ Out[28]: <User: User object (67)>
 
    ```python
    # orm
-   In [31]: User.objects.all().aggregate(Max('balance'))
+   from django.db.models import Max
+   In [31]: User.objects.aggregate(Max('balance'))
    Out[31]: {'balance__max': 1000000}
+       
+   # 2. key 이름 설정
+   In [32]: User.objects.aggregate(max=Max('balance'))
+   Out[32]: {'max': 1000000}
    ```
 
       ```sql
@@ -324,12 +410,13 @@ Out[28]: <User: User object (67)>
 
 4. 계좌 잔액 총액
 
-      ```python
+   ```python
    # orm
-   In [32]: User.objects.all().aggregate(Sum('balance'))
-Out[32]: {'balance__sum': 14425040}
+   from django.db.models import Sum
+   In [33]: User.objects.aggregate(Sum('balance'))
+   Out[33]: {'balance__sum': 14425040}
    ```
-   
+
       ```sql
    -- sql
    sqlite> SELECT SUM(balance) FROM users_user;
